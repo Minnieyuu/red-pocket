@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # Redis: 用來實作高併發扣庫存 (搶紅包核心)
+  redis:
+    image: redis:7.2-alpine
+    container_name: red-pocket-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+
+  # RabbitMQ: 用來非同步處理中獎入庫 (削峰填谷)
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: red-pocket-mq
+    ports:
+      - "5672:5672"   # 程式連線用
+      - "15672:15672" # 管理後台介面 (帳密預設: guest / guest)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: always
+
+volumes:
+  redis_data:
+  rabbitmq_data:
