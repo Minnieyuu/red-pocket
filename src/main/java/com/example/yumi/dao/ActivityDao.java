@@ -27,4 +27,16 @@ public interface ActivityDao extends JpaRepository<Activity, Long> {
 			+ " activity_id = :activityId and status='Active'  ", nativeQuery = true)
 	void decreaseStock(String activityId);
 
+	@Modifying
+	@Transactional
+	@Query(value = "update Activity set total_stock = total_stock - 1 WHERE activity_id = :activityId and status='Active' AND total_stock > 0", nativeQuery = true)
+	int updateStock(String activityId);
+
+	@Modifying
+	@Transactional
+	@Query(value = "INSERT INTO GRAB_RECORD (user_id, grab_time, activity_ref_id)"
+			+ "SELECT :userId ,  GETDATE(),a.id "
+			+ "FROM activity  a WHERE a.activity_id = :activityId; ", nativeQuery = true)
+	int insertGrabRecord(String activityId, String userId);
+
 }

@@ -93,4 +93,19 @@ public class RedPocketService {
 		return code;
 	}
 
+	public int updateStock(String activityId) {
+
+		int updateCount = activityDao.updateStock(activityId);
+
+		return updateCount;
+	}
+
+	public int insertGrabRecord(String activityId, String userId) {
+
+		int insertCount = activityDao.insertGrabRecord(activityId, userId);
+
+		return insertCount;
+
+	}
+
 }

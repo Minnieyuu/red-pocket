@@ -1,27 +1,59 @@
 version: '3.8'
-
 services:
-  # Redis: 用來實作高併發扣庫存 (搶紅包核心)
-  redis:
-    image: redis:7.2-alpine
-    container_name: red-pocket-redis
+  nginx:
+    image: nginx:alpine
     ports:
-      - "6379:6379"
+      - "80:80"
     volumes:
-      - redis_data:/data
-    restart: always
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+    mem_limit: 64m
 
-  # RabbitMQ: 用來非同步處理中獎入庫 (削峰填谷)
-  rabbitmq:
-    image: rabbitmq:3.12-management-alpine
-    container_name: red-pocket-mq
+  app:
+    build: .
+    expose:
+      - "8080"
+    #environment:
+     # - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=red-pocket;encrypt=true;trustServerCertificate=true
+     #- SPRING_DATASOURCE_USERNAME=sa
+     #- SPRING_DATASOURCE_PASSWORD=p@ssw0rd
+    depends_on:
+      - redis
+      - rabbitmq
+      - sqlserver      
+    mem_limit: 512m
+
+  sqlserver:           
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=p@ssw0rd
+      - MSSQL_PID=Express    # Express 版
+    expose:
+      - "1433"
     ports:
-      - "5672:5672"   # 程式連線用
-      - "15672:15672" # 管理後台介面 (帳密預設: guest / guest)
+      - "14433:1433"          # 保留，方便用 SSMS 連進去看資料
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    restart: always
+      - sqlserver_data:/var/opt/mssql   # 資料持久化
+      - ./sqlserver:/usr/config  # 初始化QL
+    mem_limit: 1g            # SQL Server 最少要 1g
+    # 這裡讓它啟動時跑 setup.sh
+    command: /bin/bash -c "chmod +x /usr/config/setup.sh && /usr/config/setup.sh & /opt/mssql/bin/sqlservr"
+  
+  redis:
+    image: redis:7-alpine
+    expose:
+      - "6379"
+    mem_limit: 128m
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    expose:
+      - "5672"
+    ports:
+      - "15672:15672"
+    mem_limit: 256m
 
 volumes:
-  redis_data:
-  rabbitmq_data:
+  sqlserver_data:            # 容器刪掉資料還在

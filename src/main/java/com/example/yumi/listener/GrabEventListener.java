@@ -4,7 +4,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.example.yumi.config.RabbitConfig;
@@ -22,7 +21,7 @@ public class GrabEventListener {
 	@Autowired
 	RedisTemplate<String, String> redisTemplate;
 
-	@Async
+//	@Async
 	@EventListener // 監聽 GrabSuccessEvent
 	public void handleGrabSuccess(GrabSuccessEvent event) {
 
