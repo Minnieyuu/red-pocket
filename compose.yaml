@@ -12,6 +12,9 @@ services:
 
   app:
     build: .
+    image: minnieyu/red-pocket:${VERSION:-latest}
+    deploy:
+      replicas: 3  #預設啟3個container
     expose:
       - "8080"
     #environment:
@@ -39,7 +42,7 @@ services:
       - ./sqlserver:/usr/config  # 初始化QL
     mem_limit: 1g            # SQL Server 最少要 1g
     # 這裡讓它啟動時跑 setup.sh
-    command: /bin/bash -c "chmod +x /usr/config/setup.sh && /usr/config/setup.sh & /opt/mssql/bin/sqlservr"
+    # command: /bin/bash -c "chmod +x /usr/config/setup.sh && /usr/config/setup.sh & /opt/mssql/bin/sqlservr"
   
   redis:
     image: redis:7-alpine
