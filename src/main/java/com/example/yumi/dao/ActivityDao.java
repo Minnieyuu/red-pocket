@@ -24,8 +24,8 @@ public interface ActivityDao extends JpaRepository<Activity, Long> {
 	@Modifying
 	@Transactional
 	@Query(value = "update activity set total_stock=total_stock-1 where "
-			+ " activity_id = :activityId and status='Active'  ", nativeQuery = true)
-	void decreaseStock(String activityId);
+			+ " activity_id = :activityId and status='Active' and total_stock > 0", nativeQuery = true)
+	int decreaseStock(String activityId);
 
 	@Modifying
 	@Transactional

@@ -27,7 +27,9 @@ public class DeadLetterConsumer {
 	FailedMessageDao failedMessageDao;
 
 	@Transactional /* 確保資料一致姓 失敗回滾 */
-	@RabbitListener(queues = RabbitConfig.DLQ_QUEUE, ackMode = "MANUAL") /* 手動簽收 */
+	@RabbitListener(
+			queues = RabbitConfig.DLQ_QUEUE,
+			ackMode = "MANUAL") /* 手動簽收 */
 	public void handleFailedMessage(
 			DeadLetterMessageDto deadLetter,
 			@Header(AmqpHeaders.DELIVERY_TAG) long tag,
@@ -43,8 +45,7 @@ public class DeadLetterConsumer {
 			failedMessage.setActivityId(deadLetter.getActivityId());
 
 			failedMessage
-					.setErrorMessage("原因：" + deadLetter.getErrorType()
-							+ " \n詳細內容 :" + deadLetter.getErrorMessage());
+					.setErrorMessage("原因：" + deadLetter.getErrorType() + " \n詳細內容 :" + deadLetter.getErrorMessage());
 
 			failedMessageDao.save(failedMessage);
 
@@ -53,7 +54,8 @@ public class DeadLetterConsumer {
 
 			log.info("✅ 已手動簽收死信並存入資料庫");
 
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 
 			log.info("死信存入DB失敗，{}", e);
 		}

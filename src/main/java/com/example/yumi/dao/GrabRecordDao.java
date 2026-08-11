@@ -8,4 +8,6 @@ import com.example.yumi.entity.GrabRecord;
 @Repository
 public interface GrabRecordDao extends JpaRepository<GrabRecord, Long> {
 
+	boolean existsByUserIdAndActivity_ActivityId(String userId, String activityId);
+
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.yumi.Enum.FailedMessageStatus;
 import com.example.yumi.dao.FailedMessageDao;
@@ -24,22 +25,19 @@ public class FailedMessageService {
 	ApplicationEventPublisher eventPublisher;
 
 	public List<FailedMessage> findByStatus(FailedMessageStatus pending) {
-
 		return failedMessageDao.findByStatus(pending);
 	}
 
+	@Transactional
 	public void publishEvent(List<FailedMessage> failedMessages) {
-
 		for (FailedMessage m : failedMessages) {
-
 			eventPublisher.publishEvent(new GrabSuccessEvent(m.getActivityId(), m.getUserId()));
+			m.setStatus(FailedMessageStatus.RETRIED);
+			failedMessageDao.save(m);
 
-			log.info("存入EVENT，活動編號={}，userId={}", m.getActivityId(), m.getUserId());
-
+			log.info("Republished failed grab event, activityId={}, userId={}", m.getActivityId(), m.getUserId());
 		}
 
-		log.info("一共存入:{}筆", failedMessages.size());
-
+		log.info("Republished {} failed grab events", failedMessages.size());
 	}
-
 }

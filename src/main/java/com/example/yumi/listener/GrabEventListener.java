@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class GrabEventListener {
 
+	private static final String MQ_LOST_LIST = "redpocket:MQlost:list";
+
 	@Autowired
 	RabbitTemplate rabbitTemplate;
 
@@ -22,25 +24,20 @@ public class GrabEventListener {
 	RedisTemplate<String, String> redisTemplate;
 
 //	@Async
-	@EventListener // 監聽 GrabSuccessEvent
+	@EventListener
 	public void handleGrabSuccess(GrabSuccessEvent event) {
-
 		try {
-
-			log.info(" 準備送入 MQ，userId={}", event.userId());
+			log.info("Publish grab event to MQ, activityId={}, userId={}", event.activityId(), event.userId());
 
 			rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE, RabbitConfig.ROUTING_KEY, event);
 
-			log.info(" MQ 已接收");
-
-		} catch (Exception e) {
-
-			log.error(" MQ 接收失敗，userId={}", event.userId());
-
-			// 存入 Redis 備份
-			redisTemplate.opsForHash().put("redpocket:MQlost:list", event.userId(), event.activityId());
+			log.info("Grab event published to MQ, activityId={}, userId={}", event.activityId(), event.userId());
 		}
-
+		catch (Exception e) {
+			redisTemplate.opsForHash().put(MQ_LOST_LIST, event.userId(), event.activityId());
+			log.error("Publish grab event to MQ failed, cached in Redis. activityId={}, userId={}",
+					event.activityId(), event.userId(), e);
+			throw new IllegalStateException("Publish grab event to MQ failed", e);
+		}
 	}
-
 }
