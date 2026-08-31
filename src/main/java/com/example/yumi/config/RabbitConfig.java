@@ -71,7 +71,10 @@ public class RabbitConfig {
 
 	@Bean
 	Queue redPocketDQLQueue() {
-		return new Queue(DLQ_QUEUE, true);
+	  return QueueBuilder.durable(DLQ_QUEUE)
+            .withArgument("x-dead-letter-exchange", SYS_DLQ_EXCHANGE)
+            .withArgument("x-dead-letter-routing-key", SYS_DLQ_ROUTING_KEY)
+            .build();
 	}
 
 	@Bean

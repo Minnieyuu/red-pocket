@@ -1,5 +1,7 @@
 package com.example.yumi.consumer;
 
+import java.io.IOException;
+
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +56,12 @@ public class DeadLetterConsumer {
 			log.info("✅ 已手動簽收死信並存入資料庫");
 
 		} catch (Exception e) {
-
-			log.info("死信存入DB失敗，{}", e);
+			try {
+					channel.basicNack(tag, false, false);
+					log.error("❌ 死信存入DB失敗，已nack", e);
+				} catch (IOException ioException) {
+					log.error("❌ nack本身也失敗", ioException);
+				}
 		}
 
 	}
