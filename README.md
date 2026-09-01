@@ -1,3 +1,10 @@
+# 高併發搶紅包系統（Red Packet System）
+
+個人 side project，模擬電商／活動場景下的「限量搶購」情境，重點在練習高併發下的**庫存一致性**、**訊息可靠性**與**異常補償機制**設計。
+
+## 系統架構圖
+
+```mermaid
 flowchart TB
     subgraph L1["① 流量入口"]
         USER(["使用者"])
@@ -21,7 +28,7 @@ flowchart TB
         DLQ["redpocket.dlq.queue"]
         DLQ_CONSUMER["DeadLetterConsumer"]
         FAILED_TABLE[("DB 失敗紀錄表")]
-        ADMIN["人工查表補償"]
+        ADMIN["人工查表補償 / 批次盤點"]
     end
 
     subgraph L5["⑤ 第二層補償：系統死信"]
@@ -61,3 +68,4 @@ flowchart TB
     class DB,FAILED_TABLE database
     class FAIL,DUP error
     class SYS_ADMIN warning
+```
